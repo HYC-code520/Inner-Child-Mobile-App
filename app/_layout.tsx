@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import { Stack, router } from 'expo-router';
@@ -79,7 +79,7 @@ export default function RootLayout() {
   
   if (showStartScreen) {
     return (
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={DefaultTheme}>
         <ThemedView style={styles.container}>
           <ThemedText type="title" style={{ color: '#000000' }}>Start</ThemedText>
           <TouchableOpacity onPress={handleStart}>
@@ -89,18 +89,18 @@ export default function RootLayout() {
             <ThemedText style={[styles.link, { color: '#FF6B6B' }]}>Test Notification</ThemedText>
           </TouchableOpacity>
         </ThemedView>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
       </ThemeProvider>
     );
   }
   
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
     </ThemeProvider>
   );
 }
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFE4E1',
+    backgroundColor: '#FFFFFF',
   },
   link: {
     marginTop: 20,
