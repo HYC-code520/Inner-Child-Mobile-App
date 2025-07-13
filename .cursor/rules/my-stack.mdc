@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Technical stack
+
+- React Native with Expo for mobile app development
+- Supabase for backend:
+  - User authentication
+  - Secure database (PostgreSQL)
+  - Row-level security enabled to protect private user data
+- OpenRouter (or OpenAI API) for generating emotionally supportive AI responses based on journal input
+- OneSignal for cross-platform push notifications, including interactive buttons
+- Local state via React Context or Redux for mood and avatar state
+- Expo or react-native-voice (optional later) for converting voice to journal text
+- Lottie or Animated API for simple “gift to inner child” animations
+- AsyncStorage or Supabase DB for storing gift/message history
+
+# Considerations
+
+- No clinical/medical data is stored — journal data is private and user-controlled
+- Privacy-first approach with optional deletion and no PII collection in MVP
+- Easy to swap Supabase with a Flask backend in future if needed
+
