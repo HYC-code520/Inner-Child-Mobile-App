@@ -2,10 +2,14 @@ import { ThemedText } from '@/components/ThemedText';
 import React, { useState } from 'react';
 import {
   Alert,
-  ScrollView,
+  Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View
 } from 'react-native';
 
@@ -14,164 +18,115 @@ export default function JournalSection() {
 
   const handleSaveEntry = () => {
     if (journalEntry.trim()) {
-      // Here you'll save to storage later
       Alert.alert('Entry Saved! 📝', 'Your thoughts have been saved safely.', [
         { text: 'OK' }
       ]);
-      setJournalEntry(''); // Clear the entry after saving
+      setJournalEntry('');
     } else {
       Alert.alert('Empty Entry', 'Please write something before saving.');
     }
   };
 
-  // NEW: AI Reflection placeholder function
   const handleAIReflection = () => {
     if (!journalEntry.trim()) {
       Alert.alert(
         'No Entry to Reflect On 🤔',
-        'Please write something in your journal first, then I can help you reflect on it with gentle AI guidance.',
+        'Please write something in your journal first.',
         [{ text: 'OK' }]
       );
       return;
     }
-
-    Alert.alert(
-      '🌟 AI Reflection (Coming Soon!)',
-      `This feature will:
-
-• Gently analyze your journal entry
-• Detect any negative self-talk or distress
-• Offer loving reframes and validation
-• Provide symbolic gifts for your inner child
-• Share nurturing words and inner safety messages
-
-Your entry will be treated with the utmost care and compassion. 💝`,
-      [{ text: 'I can\'t wait! ✨' }]
-    );
+    Alert.alert('🌟 AI Reflection', 'Coming soon!', [{ text: 'OK' }]);
   };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      keyboardShouldPersistTaps="handled"
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <ThemedText type="title" style={styles.title}>Dear Inner Child... 💭</ThemedText>
-      <ThemedText style={styles.subtitle}>
-        What's on your heart today? Write freely and without judgment.
-      </ThemedText>
+      {/* Dismissible area */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.dismissibleArea} />
+      </TouchableWithoutFeedback>
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          multiline
-          placeholder="Start writing your thoughts here... 
+      {/* Bottom content */}
+      <View style={styles.bottomContent}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.textInput}
+            multiline
+            placeholder="Dear Inner Child... 💭"
+            placeholderTextColor="rgba(0, 0, 0, 0.5)"
+            value={journalEntry}
+            onChangeText={setJournalEntry}
+            textAlignVertical="top"
+          />
+        </View>
 
-How are you feeling today? What made you smile? What's worrying you? Remember, this is a safe space for your inner child to express anything."
-          placeholderTextColor="#999999"
-          value={journalEntry}
-          onChangeText={setJournalEntry}
-          textAlignVertical="top"
-        />
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleAIReflection}
+          >
+            <ThemedText style={styles.buttonText}>✨ Reflect</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleSaveEntry}
+          >
+            <ThemedText style={styles.buttonText}>💾 Save</ThemedText>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      <View style={styles.aiReflectionSection}>
-        <TouchableOpacity style={styles.aiReflectionButton} onPress={handleAIReflection}>
-          <ThemedText style={styles.aiReflectionButtonText}>✨ Reflect with AI</ThemedText>
-          <ThemedText style={styles.aiReflectionSubtext}>
-            Get gentle reframes and inner child gifts
-          </ThemedText>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.saveButton} onPress={handleSaveEntry}>
-        <ThemedText style={styles.saveButtonText}>Save Entry 💾</ThemedText>
-      </TouchableOpacity>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
+
+const { height: screenHeight } = Dimensions.get('window');
+const INPUT_HEIGHT = screenHeight * 0.15; // 15% of screen height for input
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  dismissibleArea: {
+    flex: 1, // Takes up all space above the bottom content
+  },
+  bottomContent: {
+    padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
     backgroundColor: 'transparent',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    margin: 10,
-    marginBottom: 0,
-  },
-  contentContainer: {
-    paddingBottom: 40,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 8,
-    marginHorizontal: 20,
-    textAlign: 'center',
-    paddingTop: 20,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 15,
-    marginHorizontal: 20,
   },
   inputContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 15,
-    padding: 15,
-    minHeight: 120,
-    marginBottom: 15,
-    marginHorizontal: 20,
+    height: INPUT_HEIGHT,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginBottom: 12,
   },
   textInput: {
-    fontSize: 14,
-    lineHeight: 20,
+    height: '100%',
+    padding: 16,
+    fontSize: 16,
     color: '#000000',
-    minHeight: 100,
     textAlignVertical: 'top',
   },
-  aiReflectionSection: {
-    marginBottom: 15,
-    marginHorizontal: 20,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
   },
-  aiReflectionButton: {
-    backgroundColor: '#90B77D',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+  button: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 16,
+    padding: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  aiReflectionButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  aiReflectionSubtext: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 12,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  saveButton: {
-    backgroundColor: '#42855B',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginHorizontal: 20,
-  },
-  saveButtonText: {
-    color: 'white',
+  buttonText: {
     fontSize: 16,
     fontWeight: '600',
   },

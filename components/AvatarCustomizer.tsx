@@ -1,8 +1,10 @@
 import { AntDesign, FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 // Add Image and ImageSourcePropType to the import
+import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { FlatList, Image, ImageSourcePropType, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, ImageSourcePropType, Modal, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ThemedText } from './ThemedText';
 
 
 // Types for customization options
@@ -104,6 +106,10 @@ const preloadImages = (imageArray: CustomizationOption[]) => {
 export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerProps) {
   const [selectedCategory, setSelectedCategory] = useState<keyof typeof avatarOptions>('face');
   const [isDone, setIsDone] = useState(false);
+  
+  // Add this state for menu visibility
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const router = useRouter();
   
   // 1. Change the state to track the selected option ID instead of the image
   const [selectedFaceId, setSelectedFaceId] = useState<string>('face-2');
@@ -214,14 +220,54 @@ export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerPro
     </TouchableOpacity>
   );
 
+  // Add this function to handle navigation
+  const handleJournalHistoryPress = () => {
+    setIsMenuVisible(false); // Close menu
+    router.push('/(tabs)/journal-history'); // Navigate to journal history screen
+  };
+
   return (
     <View style={[styles.container, isDone && styles.containerEnlarged]}>
+      {/* Menu Button */}
+      <TouchableOpacity
+        style={[
+          styles.menuButton,
+          isDone && styles.menuButtonEnlarged
+        ]}
+        onPress={() => setIsMenuVisible(true)}
+      >
+        <Ionicons name="menu" size={24} color="white" />
+      </TouchableOpacity>
+
+      {/* Menu Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isMenuVisible}
+        onRequestClose={() => setIsMenuVisible(false)}
+      >
+        <Pressable 
+          style={styles.menuOverlay}
+          onPress={() => setIsMenuVisible(false)}
+        >
+          <View style={styles.menuContent}>
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={handleJournalHistoryPress}
+            >
+              <Ionicons name="book-outline" size={24} color="black" />
+              <ThemedText style={[styles.menuItemText, { color: '#000' }]}>Journal History</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
       {/* Preview Area */}
       <View style={[
         styles.previewArea,
         isDone && styles.previewAreaEnlarged
       ]}>
-        {/* Top Bar Buttons - Moved inside the preview area */}
+        {/* Top Bar Buttons - Conditionally Rendered */}
         {!isDone ? (
           <>
             <TouchableOpacity style={styles.randomButton}>
@@ -235,12 +281,12 @@ export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerPro
             </TouchableOpacity>
           </>
         ) : (
-          <TouchableOpacity 
-            style={[styles.backButton, styles.backButtonEnlarged]}
-            onPress={handleBack}
-          >
-            <Ionicons name="arrow-back" size={24} color="#90B77D" />
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.backButton, styles.backButtonEnlarged]}
+              onPress={handleBack}
+            >
+              <Ionicons name="arrow-back" size={24} color="white" />
+            </TouchableOpacity>
         )}
         
         {/* Background Image - Rendered first so it appears behind everything */}
@@ -311,7 +357,8 @@ const styles = StyleSheet.create({
     color: '#000000',  // This will make the text black
   },
   container: {
-    marginHorizontal: 16,
+    flex: 1,
+    backgroundColor: '#fff',
   },
   containerEnlarged: {
     marginHorizontal: 0,
@@ -319,8 +366,8 @@ const styles = StyleSheet.create({
   },
   randomButton: {
     position: 'absolute',
-    top: 20, // Increased from 12 to 20
-    left: 12,
+    bottom: 20,
+    right: 12,
     padding: 10,
     borderRadius: 20,
     borderWidth: 1,
@@ -375,12 +422,12 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     width: '25%',
-    height: '25%',
+    height: '45%',
   },
   accessoryPreview: {
     position: 'absolute',
-    top: '25%',
-    alignSelf: 'center',
+    top: '5%',
+    right: '5%',
     width: '30%',
     height: '30%',
   },
@@ -474,12 +521,10 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     top: 20, // Increased from 12 to 20
-    left: 12,
+    right: 12,
     padding: 8,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#90B77D',
-    backgroundColor: '#FFF',
+    backgroundColor: '#000',
     alignItems: 'center',
     justifyContent: 'center',
     width: 40,
@@ -488,7 +533,7 @@ const styles = StyleSheet.create({
   },
   backButtonEnlarged: {
     top: 80, // Move down below safe area when enlarged
-    left: 20, // Give it a bit more margin from the edge
+    right: 20, // Give it a bit more margin from the edge
   },
   backButtonText: {
     color: '#90B77D',
@@ -507,5 +552,54 @@ const styles = StyleSheet.create({
   preloadImage: {
     width: 1,
     height: 1,
+  },
+  menuButton: {
+    position: 'absolute',
+    top: 20,
+    left: 12,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#000',
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 40,
+    height: 40,
+  },
+  menuButtonEnlarged: {
+    top: 80, // Compensate for the -60 marginTop in containerEnlarged
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+  },
+  menuContent: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 8,
+    marginTop: 80, // Position below the menu button
+    marginLeft: 12,
+    minWidth: 200,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+  },
+  menuItemText: {
+    marginLeft: 12,
+    fontSize: 16,
+    color: '#000', // Add this line to make the text black
   },
 });

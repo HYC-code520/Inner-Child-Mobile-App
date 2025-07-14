@@ -2,39 +2,30 @@
 
 import React, { useState } from 'react';
 import {
-  Dimensions,
-  Keyboard,
   StyleSheet,
-  TouchableWithoutFeedback,
   View
 } from 'react-native';
 import AvatarCustomizer from '../../components/AvatarCustomizer';
 import JournalSection from '../../components/JournalSection';
 
-const { height: screenHeight } = Dimensions.get('window');
-
 export default function HomeScreen() {
   const [isAvatarDone, setIsAvatarDone] = useState(false);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
-        {/* This View groups the top content */}
-        <View style={styles.avatarContainer}>
-          <AvatarCustomizer 
-            onDone={() => setIsAvatarDone(true)}
-            onBack={() => setIsAvatarDone(false)}
-          />
-        </View>
-
-        {/* This section will be positioned at the bottom */}
-        {isAvatarDone && (
-          <View style={styles.journalContainer}>
-            <JournalSection />
-          </View>
-        )}
+    <View style={styles.container}>
+      <View style={styles.avatarContainer}>
+        <AvatarCustomizer 
+          onDone={() => setIsAvatarDone(true)}
+          onBack={() => setIsAvatarDone(false)}
+        />
       </View>
-    </TouchableWithoutFeedback>
+
+      {isAvatarDone && (
+        <View style={styles.journalContainer}>
+          <JournalSection />
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -48,11 +39,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   journalContainer: {
+    flex: 1,
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
-    height: screenHeight / 3,
+    bottom: 0,
+    top: 60,
     backgroundColor: 'transparent',
   },
 });

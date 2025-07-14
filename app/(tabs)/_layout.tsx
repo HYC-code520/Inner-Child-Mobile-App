@@ -1,10 +1,24 @@
-import { Stack } from 'expo-router';
+import { Tabs } from 'expo-router';
+import React from 'react';
 
-export default function Layout() {
+export default function TabLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="settings" />
-    </Stack>
+    <Tabs screenOptions={{ 
+      headerShown: false,
+    }}>
+      <Tabs.Screen
+        name="index"
+        options={{
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="journal-history"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+    </Tabs>
   );
 }

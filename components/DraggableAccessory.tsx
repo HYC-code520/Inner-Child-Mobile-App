@@ -2,8 +2,8 @@ import React from 'react';
 import { Image, ImageSourcePropType, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue
+  useAnimatedStyle,
+  useSharedValue
 } from 'react-native-reanimated';
 
 interface DraggableAccessoryProps {
