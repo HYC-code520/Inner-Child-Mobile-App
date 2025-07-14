@@ -1,7 +1,6 @@
 import { AntDesign, FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 // Add Image and ImageSourcePropType to the import
-import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { FlatList, Image, ImageSourcePropType, Modal, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from './ThemedText';
@@ -19,9 +18,20 @@ interface CustomizationOption {
   selected?: boolean;
 }
 
+interface AvatarSelections {
+  faceId: string;
+  petId: string;
+  accessoryId: string;
+  backgroundId: string;
+}
+
 interface AvatarCustomizerProps {
   onDone: () => void;
   onBack: () => void; // Add this prop
+  onJournalHistory: () => void; // Add this new prop
+  isDone?: boolean; // Add this prop
+  selections: AvatarSelections;
+  onSelectionsChange: (selections: AvatarSelections) => void;
 }
 
 // Define a default avatar to show at the start
@@ -90,9 +100,9 @@ const avatarOptions = {
     { id: 'accessories-11', image: require('../assets/avatars/accessories/accessories-11.png') },
   ],
   background: [
-    { id: 'background-01', image: require('../assets/avatars/background/backgroung-01.png') },
-    { id: 'background-02', image: require('../assets/avatars/background/backgroung-02.png') },
-    { id: 'background-03', image: require('../assets/avatars/background/backgroung-03.png') }
+    { id: 'background-01', image: require('../assets/avatars/background/background-01.png') },
+    { id: 'background-02', image: require('../assets/avatars/background/background-02.png') },
+    { id: 'background-03', image: require('../assets/avatars/background/background-03.png') }
   ]
 };
 
@@ -103,28 +113,49 @@ const preloadImages = (imageArray: CustomizationOption[]) => {
   });
 };
 
-export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerProps) {
-  const [selectedCategory, setSelectedCategory] = useState<keyof typeof avatarOptions>('face');
-  const [isDone, setIsDone] = useState(false);
-  
-  // Add this state for menu visibility
+export default function AvatarCustomizer({ 
+  onDone, 
+  onBack, 
+  onJournalHistory,
+  isDone: externalIsDone,
+  selections,
+  onSelectionsChange
+}: AvatarCustomizerProps) {
+  // States
+  const [localIsDone, setLocalIsDone] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const router = useRouter();
-  
+  const [selectedCategory, setSelectedCategory] = useState<keyof typeof avatarOptions>('face');
+  // const [selectedFaceId, setSelectedFaceId] = useState('face-1');
+  // const [selectedPetId, setSelectedPetId] = useState('animal-1');
+  // const [selectedAccessoryId, setSelectedAccessoryId] = useState('accessories-1');
+  // const [selectedBackgroundId, setSelectedBackgroundId] = useState('backgroung-01');
+
+  // Use the external isDone state if provided, otherwise use local state
+  const isDone = externalIsDone ?? localIsDone;
+
+  // Effect to sync local state with external state
+  useEffect(() => {
+    if (externalIsDone !== undefined) {
+      setLocalIsDone(externalIsDone);
+    }
+  }, [externalIsDone]);
+
   // 1. Change the state to track the selected option ID instead of the image
-  const [selectedFaceId, setSelectedFaceId] = useState<string>('face-2');
-  const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
-  const [selectedAccessoryId, setSelectedAccessoryId] = useState<string | null>(null);
-  const [selectedBackgroundId, setSelectedBackgroundId] = useState<string | null>(null);
+  // const [selectedFaceId, setSelectedFaceId] = useState<string>('face-2');
+  // const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
+  // const [selectedAccessoryId, setSelectedAccessoryId] = useState<string | null>(null);
+  // const [selectedBackgroundId, setSelectedBackgroundId] = useState<string | null>(null);
   
   const currentOptions = avatarOptions[selectedCategory];
 
-  // 2. Get the selected face image based on the ID
-  const selectedFace = avatarOptions.face.find(item => item.id === selectedFaceId)?.image || defaultAvatar;
-  const selectedPet = avatarOptions.pet.find(item => item.id === selectedPetId)?.image;
-  const selectedAccessory = avatarOptions.accessories.find(item => item.id === selectedAccessoryId)?.image;
-  
-  const selectedBackground = avatarOptions.background.find(item => item.id === selectedBackgroundId)?.image;
+  // Update how we get the selected images
+  const selectedFace = avatarOptions.face.find(opt => opt.id === selections.faceId)?.image;
+  // Only find pet and accessory if IDs are not empty
+  const selectedPet = selections.petId ? avatarOptions.pet.find(opt => opt.id === selections.petId)?.image : null;
+  const selectedAccessory = selections.accessoryId ? avatarOptions.accessories.find(opt => opt.id === selections.accessoryId)?.image : null;
+  // Always get background even if it's the default
+  const selectedBackground = avatarOptions.background.find(opt => opt.id === selections.backgroundId)?.image 
+    || avatarOptions.background[0].image; // Fallback to first background if not found
 
   // 3. Preload all face images when component mounts
   useEffect(() => {
@@ -153,15 +184,17 @@ export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerPro
 
   // Handle done button press
   const handleDone = () => {
-    setIsDone(true);
+    setLocalIsDone(true);
     onDone();
   };
 
+  // Handle back button press
   const handleBack = () => {
-    setIsDone(false);
-    onBack(); // Call the parent's onBack handler
+    setLocalIsDone(false);
+    onBack();
   };
 
+  // Update the handle functions
   const renderCategoryButton = (category: CustomizationCategory) => (
     <TouchableOpacity
       key={category.id}
@@ -184,19 +217,22 @@ export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerPro
   // 2. Create a handler for when an option is tapped
   const handleSelectOption = (option: CustomizationOption) => {
     console.log('Selected option:', option.id); // Add this for debugging
+    const newSelections = { ...selections };
+    
     if (selectedCategory === 'face') {
-      setSelectedFaceId(option.id);
+      newSelections.faceId = option.id;
     }
     else if (selectedCategory === 'pet') {
-      setSelectedPetId(option.id);
+      newSelections.petId = option.id;
     }
     else if (selectedCategory === 'accessories') {
-      setSelectedAccessoryId(option.id);
+      newSelections.accessoryId = option.id;
     }
     else if (selectedCategory === 'background') {
-      setSelectedBackgroundId(option.id);
+      newSelections.backgroundId = option.id;
     }
-    // Later, you can add else-if blocks for other categories
+
+    onSelectionsChange(newSelections);
   };
 
   // We will call this function inside a .map() instead of passing it to FlatList
@@ -206,7 +242,7 @@ export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerPro
       style={[
         styles.optionButton,
         // Add a style to highlight the selected option
-        (item.id === selectedFaceId || item.id === selectedPetId || item.id === selectedAccessoryId || item.id === selectedBackgroundId) && styles.optionButtonSelected
+        (item.id === selections.faceId || item.id === selections.petId || item.id === selections.accessoryId || item.id === selections.backgroundId) && styles.optionButtonSelected
       ]}
       onPress={() => handleSelectOption(item)}
     >
@@ -220,10 +256,10 @@ export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerPro
     </TouchableOpacity>
   );
 
-  // Add this function to handle navigation
+  // Handle journal history press
   const handleJournalHistoryPress = () => {
     setIsMenuVisible(false); // Close menu
-    router.push('/(tabs)/journal-history'); // Navigate to journal history screen
+    onJournalHistory(); // Call the parent's handler
   };
 
   return (
@@ -289,7 +325,7 @@ export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerPro
             </TouchableOpacity>
         )}
         
-        {/* Background Image - Rendered first so it appears behind everything */}
+        {/* Background Image - Make sure it's rendered first */}
         {selectedBackground && (
           <Image
             source={selectedBackground}
@@ -298,31 +334,33 @@ export default function AvatarCustomizer({ onDone, onBack }: AvatarCustomizerPro
               isDone && styles.backgroundPreviewEnlarged
             ]}
             resizeMode="cover"
-            fadeDuration={0}
           />
         )}
         
-        {/* Avatar and Pet/Accessory Images */}
-        <Image 
-          source={selectedFace} 
-          style={[styles.avatarPreview, isDone && styles.avatarPreviewEnlarged]} 
-          resizeMode="contain"
-          fadeDuration={0}
-        />
+        {/* Avatar Face */}
+        {selectedFace && (
+          <Image 
+            source={selectedFace} 
+            style={[styles.avatarPreview, isDone && styles.avatarPreviewEnlarged]} 
+            resizeMode="contain"
+          />
+        )}
+
+        {/* Only render pet if selected */}
         {selectedPet && (
           <Image
             source={selectedPet}
             style={styles.petPreview}
             resizeMode="contain"
-            fadeDuration={0}
           />
         )}
+
+        {/* Only render accessory if selected */}
         {selectedAccessory && (
           <Image
             source={selectedAccessory}
             style={styles.accessoryPreview}
             resizeMode="contain"
-            fadeDuration={0}
           />
         )}
       </View>
@@ -358,7 +396,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#E8F3E0',
   },
   containerEnlarged: {
     marginHorizontal: 0,
@@ -396,19 +434,21 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   previewArea: {
-    height: 500,
+    height: 540,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFF',
     marginBottom: 16,
     borderRadius: 16,
     position: 'relative',
+    
   },
   previewAreaEnlarged: {
     height: 740, // Increased height when done
     // width: '100%',
     borderRadius: 0,
     marginBottom: 0,
+    
   },
   avatarPreview: {
     width: '70%', // Use percentage to be responsive
@@ -456,14 +496,14 @@ const styles = StyleSheet.create({
   categoryBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 5, // Reduced from 12
-    backgroundColor: '#FFF',
+    paddingVertical: 0, // Reduced from 12
+    backgroundColor: '#E8F3E0',
     borderRadius: 12,
     marginBottom: 0, 
   },
   categoryButton: {
-    padding: 2, // Reduced from 12
-    borderRadius: 12,
+    padding: 10, // Reduced from 12
+    borderRadius: 70,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -471,12 +511,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#90B77D', // Matcha green (was #FFB6C1)
   },
   iconContainer: {
-    width: 32, // Reduced from 40
-    height: 20, // Reduced from 40
+    width: 25, // Reduced from 40
+    height: 25, // Reduced from 40
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10, // Half of width/height
-    backgroundColor: '#FFF',
+    backgroundColor: '#E8F3E0',
   },
   iconContainerSelected: {
     backgroundColor: '#90B77D', // Matcha green (was #FFB6C1)
@@ -486,9 +526,10 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     height: 180, // Adjust this value to make the scrollable area taller or shorter
-    backgroundColor: '#FFF',
+    backgroundColor: '#E8F3E0',
     borderRadius: 12,
     padding: 8,
+    
   },
   
   // This style is for the content inside the FlatList
@@ -502,10 +543,9 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     margin: 4,
     borderRadius: 8,
-    borderWidth: 1,
     borderColor: '#90B77D',
     padding: 4,
-    backgroundColor: '#FFF',
+    backgroundColor: '#E8F3E0',
   },
 
   // Keep the optionImage style
@@ -513,8 +553,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#90B77D',
+    borderWidth: 0,
+    borderColor: '#FFF',
     resizeMode: 'contain',
     fadeDuration: 0, // Remove fade animation
   },
@@ -541,7 +581,7 @@ const styles = StyleSheet.create({
   },
   // 5. Add a style for the selected option button
   optionButtonSelected: {
-    borderColor: '#42855B', // Use a darker green to indicate selection
+    borderColor: '#FFF', // Use a darker green to indicate selection
     borderWidth: 3,
   },
   preloader: {

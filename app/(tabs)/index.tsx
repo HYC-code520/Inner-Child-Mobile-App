@@ -6,10 +6,36 @@ import {
   View
 } from 'react-native';
 import AvatarCustomizer from '../../components/AvatarCustomizer';
+import JournalHistoryPage from '../../components/JournalHistoryPage';
 import JournalSection from '../../components/JournalSection';
+
+// Define interfaces for avatar selections
+interface AvatarSelections {
+  faceId: string;
+  petId: string;
+  accessoryId: string;
+  backgroundId: string;
+}
 
 export default function HomeScreen() {
   const [isAvatarDone, setIsAvatarDone] = useState(false);
+  const [showJournalHistory, setShowJournalHistory] = useState(false);
+  // Add state for avatar selections
+  const [avatarSelections, setAvatarSelections] = useState<AvatarSelections>({
+    faceId: 'face-20',
+    petId: '',
+    accessoryId: '',
+    backgroundId: 'backgroung-01'
+  });
+
+  // If journal history is shown, render only that component
+  if (showJournalHistory) {
+    return (
+      <JournalHistoryPage 
+        onBack={() => setShowJournalHistory(false)} 
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -17,10 +43,14 @@ export default function HomeScreen() {
         <AvatarCustomizer 
           onDone={() => setIsAvatarDone(true)}
           onBack={() => setIsAvatarDone(false)}
+          onJournalHistory={() => setShowJournalHistory(true)}
+          isDone={isAvatarDone}
+          selections={avatarSelections}
+          onSelectionsChange={setAvatarSelections}
         />
       </View>
 
-      {isAvatarDone && (
+      {isAvatarDone && !showJournalHistory && (
         <View style={styles.journalContainer}>
           <JournalSection />
         </View>
