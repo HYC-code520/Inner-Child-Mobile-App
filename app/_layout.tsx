@@ -1,5 +1,4 @@
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -8,8 +7,17 @@ import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  Image,
+  ImageBackground,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import 'react-native-reanimated';
+import LoginScreen from './login';
+import SignUpScreen from './signup';
 
 // Import notification service functions
 import {
@@ -33,6 +41,8 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [appIsReady, setAppIsReady] = useState(false);
   const [showStartScreen, setShowStartScreen] = useState(true);
+  const [loginModalVisible, setLoginModalVisible] = useState(false);
+  const [signUpModalVisible, setSignUpModalVisible] = useState(false);
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -68,32 +78,89 @@ export default function RootLayout() {
   }, []);
 
   const handleStart = useCallback(() => {
-    setShowStartScreen(false);
+    // Instead of navigating, we now show the login modal.
+    setLoginModalVisible(true);
+  }, []);
+
+  // Placeholder function for successful login/signup
+  const handleAuthenticationSuccess = () => {
+    setLoginModalVisible(false);
+    setSignUpModalVisible(false);
+    setShowStartScreen(false); // Hide the start screen
     scheduleWelcomeNotification();
     router.push('/(tabs)');
-  }, []);
+  };
 
   if (!appIsReady) {
     return null;
   }
-  
+
   if (showStartScreen) {
     return (
       <ThemeProvider value={DefaultTheme}>
-        <ThemedView style={styles.container}>
-          <ThemedText type="title" style={{ color: '#000000' }}>Start</ThemedText>
-          <TouchableOpacity onPress={handleStart}>
-            <ThemedText style={styles.link}>Enter App</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={scheduleTestNotification} style={{ marginTop: 10 }}>
-            <ThemedText style={[styles.link, { color: '#FF6B6B' }]}>Test Notification</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
+        <ImageBackground
+          source={require('../assets/ICS-start-screen.png')}
+          resizeMode="cover"
+          style={styles.container}
+        >
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={handleStart}>
+              <Image
+                source={require('../assets/start-button.png')}
+                style={styles.startButtonImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={scheduleTestNotification}
+              style={styles.testButtonTouchable}
+            >
+              <ThemedText style={[styles.button, styles.testButton]}>
+                Test Notification
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </ImageBackground>
+
+        {/* Login Modal */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={loginModalVisible}
+          onRequestClose={() => setLoginModalVisible(false)}
+        >
+          <LoginScreen
+            onClose={() => setLoginModalVisible(false)}
+            onNavigateToSignUp={() => {
+              setLoginModalVisible(false);
+              setSignUpModalVisible(true);
+            }}
+            onLogin={handleAuthenticationSuccess}
+          />
+        </Modal>
+
+        {/* Sign-Up Modal */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={signUpModalVisible}
+          onRequestClose={() => setSignUpModalVisible(false)}
+        >
+          <SignUpScreen
+            onClose={() => setSignUpModalVisible(false)}
+            onNavigateToLogin={() => {
+              setSignUpModalVisible(false);
+              setLoginModalVisible(true);
+            }}
+            onSignUp={handleAuthenticationSuccess}
+          />
+        </Modal>
+
         <StatusBar style="dark" />
       </ThemeProvider>
     );
   }
-  
+
   return (
     <ThemeProvider value={DefaultTheme}>
       <Stack>
@@ -109,11 +176,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    justifyContent: 'flex-end',
   },
-  link: {
-    marginTop: 20,
-    color: '#007AFF',
+  buttonContainer: {
+    marginBottom: 0,
+    alignItems: 'center',
+  },
+  button: {
+    marginTop: 10,
+    color: '#fff',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    paddingVertical: 2,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    overflow: 'hidden',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  startButtonImage: {
+    width: 400,
+    height: 220,
+  },
+  testButton: {
+    backgroundColor: 'rgba(255, 107, 107, 0.7)',
+  },
+  testButtonTouchable: {
+    transform: [{ translateY: -40 }],
   },
 });

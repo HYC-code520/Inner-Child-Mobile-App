@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  View
+    Modal,
+    StyleSheet,
+    View
 } from 'react-native';
 import AvatarCustomizer from '../../components/AvatarCustomizer';
 import JournalHistoryPage from '../../components/JournalHistoryPage';
@@ -29,13 +30,7 @@ export default function HomeScreen() {
   });
 
   // If journal history is shown, render only that component
-  if (showJournalHistory) {
-    return (
-      <JournalHistoryPage 
-        onBack={() => setShowJournalHistory(false)} 
-      />
-    );
-  }
+  // We are removing this conditional rendering to use a Modal instead.
 
   return (
     <View style={styles.container}>
@@ -55,6 +50,18 @@ export default function HomeScreen() {
           <JournalSection />
         </View>
       )}
+
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={showJournalHistory}
+        onRequestClose={() => {
+          setShowJournalHistory(false);
+        }}>
+        <JournalHistoryPage 
+          onBack={() => setShowJournalHistory(false)} 
+        />
+      </Modal>
     </View>
   );
 }

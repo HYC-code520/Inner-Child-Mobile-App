@@ -76,7 +76,11 @@ const avatarOptions = {
     { id: 'face-34', image: require('../assets/avatars/face/face-34.png') },
     { id: 'face-35', image: require('../assets/avatars/face/face-35.png') },
     { id: 'face-36', image: require('../assets/avatars/face/face-36.png') },
-    { id: 'face-37', image: require('../assets/avatars/face/face-37.png') }
+    { id: 'face-37', image: require('../assets/avatars/face/face-37.png') },
+    { id: 'face-38', image: require('../assets/avatars/face/face-38.png') },
+    { id: 'face-39', image: require('../assets/avatars/face/face-39.png') },
+    { id: 'face-40', image: require('../assets/avatars/face/face-40.png') },
+
   ],
   pet: [
     { id: 'animal-1', image: require('../assets/avatars/pet/animal-1.png') },
@@ -293,6 +297,11 @@ export default function AvatarCustomizer({
             >
               <Ionicons name="book-outline" size={24} color="black" />
               <ThemedText style={[styles.menuItemText, { color: '#000' }]}>Journal History</ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.menuItem} onPress={() => { /* Placeholder */ }}>
+              <FontAwesome5 name="user-friends" size={20} color="#000" style={{ width: 24, textAlign: 'center' }} />
+              <ThemedText style={styles.menuItemText}>Visit Friend</ThemedText>
             </TouchableOpacity>
           </View>
         </Pressable>
